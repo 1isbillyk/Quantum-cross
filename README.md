@@ -106,7 +106,7 @@ catches fire and burns your house down it's not my fault**
 
 # Install Picture
 
-![xboxexpert's installation](images/xboxexpert2.png)
+![Ely's Switch](images/elys_trinket_switch_sm.png)
 
 # Thanks!
 
