@@ -106,7 +106,7 @@ catches fire and burns your house down it's not my fault**
 
 # Install Picture
 
-![Ely's Switch](images/elys_trinket_switch_sm.png)
+![Ely's Switch](images/elys_trinket_switch_sm.jpg)
 
 # Thanks!
 
