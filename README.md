@@ -92,9 +92,7 @@ This method is working great for me.
 * Flash the Trinket with the Arduino IDE as normal.   
 
 my video of myself flashing my trinket m0  
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/m1voqWkIrug" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
+![Flashing trinket m0 video](http://img.youtube.com/vi/m1voqWkIrug/0.jpg)](http://www.youtube.com/watch?v=m1voqWkIrug)
 
 
 # Issues
