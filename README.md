@@ -80,14 +80,20 @@ See [INSTALL.md](INSTALL.md)
 
 # Reflashing the Trinket while installed
 
-This is hacky and may not work forever, but somehow it works:
+This is hacky and may not work forever, but somehow it works:  
+This method is working great for me.   
 
-* Boot into horizon, leave it at the home screen
-* Put the trinket into bootloader mode by pulling the Trinket `RST` line to ground
-  twice quickly.
-* Plug the switch into your computer, the LED should turn green and you should see
-  the Trinket as a mass storage device
-* Flash the Trinket with the Arduino IDE as normal.
+* Boot into horizon (OFW), leave it at the home screen
+* Put the trinket into bootloader mode by pressing the small black button twice quickly.
+* Plug the switch into your computer, the LED should turn green and you should see the Trinket as a mass storage device  
+* open your device manager and find the exact COM you need.  
+* open arduino IDE and make sure you set the COM  via tools -> port -> select exact COM # of the trinket m0.   
+* make sure you get updated code with latest payload built in.    
+* Flash the Trinket with the Arduino IDE as normal.   
+
+my video of myself flashing my trinket m0  
+[![Flashing trinket m0 video](http://img.youtube.com/vi/m1voqWkIrug/0.jpg)](http://www.youtube.com/watch?v=m1voqWkIrug)
+
 
 # Issues
 
@@ -106,7 +112,8 @@ catches fire and burns your house down it's not my fault**
 
 # Install Picture
 
-![xboxexpert's installation](images/xboxexpert2.png)
+This is Ely's switch with trinket m0 installed.   
+![Ely's Switch](images/elys_trinket_switch_sm.jpg)
 
 # Thanks!
 
@@ -117,6 +124,5 @@ off of
 * [noemu](https://github.com/noemu/sam-fusee-launcher) for his
   iteration/cleanup of atlas44's code.
 * [xboxexport](https://www.youtube.com/user/xboxexpert) for testing the mod,
-  helping with the install instructions, pictures, and the idea for grabbing
-RCM_STRAP at the rail.
+  helping with the install instructions, pictures, and the idea for grabbing RCM_STRAP at the rail.
 
