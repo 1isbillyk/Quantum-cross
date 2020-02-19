@@ -81,7 +81,7 @@ other side of the motherboard that you can also use.
 **Warning, this is not *thoroughly* tested but it *should* work just as well as
 the other solder point.**
 
-Solder pad 3 to pad `E10` in the ![picture linked here](http://switchbrew.org/index.php?title=Testpads).
+Solder pad 4 to pad `E10`. ![picture linked here](https://switchbrew.org/w/images/7/70/Switchre_side2.jpg).
 
 The test pad is on the opposite side of the motherboard. I will not detail the 
 steps required to remove the motherboard and flip it over. I will say that you
@@ -121,7 +121,7 @@ pushing the small metal pin out (like adjusting a watch band) to release it.
 
 ## Install `RCM_STRAP` wire (Alternate test pad on underside of motherboard) (Optional)
 
-Solder pad 3 to pad `G9` in the ![picture linked here](http://switchbrew.org/index.php?title=Testpads). 
+Solder pad 3 to pad `G9`. ![picture linked here](https://switchbrew.org/w/images/7/70/Switchre_side2.jpg). 
 
 The test pad is on the opposite side of the motherboard. I will not detail the 
 steps required to remove the motherboard and flip it over. I will say that you

@@ -68,9 +68,10 @@ LED is:
 # Update the Payload
 Download your favorite [payload](https://github.com/CTCaer/hekate/releases) as a `.bin` file.
 Run the python script `tools/binConverter.py` with the path to the file as an argument:
-`python binConverter.py "C:\pathToMyPayload\hekateNew.bin` or just drag the .bin file on the script
+`python binConverter.py "C:\pathToMyPayload\hekateNew.bin` or just drag the .bin file on the script.
+The script requires Python 2.7 be installed in order for the converter to function.
 
-In the same folder as the .bin file is located, a new .h file should appear. Copy the new file to the main folder and in the main.ino go to line 6 `#include "hekate_ctcaer_2.3.h"` and rename it to your new file `#include "hekateNew.h"`
+In the same folder as the .bin file is located, a new .h file should appear. Copy the new file to the main folder and in the main.ino go to line 6 `#include "hekate_ctcaer_2.3.h"` and rename it to your new file `#include "hekateNew.h"`.
 
 Then just compile and upload.
 
