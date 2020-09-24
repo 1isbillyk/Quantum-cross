@@ -1,5 +1,4 @@
 import sys
-import binascii
 import os
 
 
@@ -25,7 +24,7 @@ def openFileToByte_generator(filename , chunkSize = 128):
 
 
 if(len(sys.argv) is not 2):
-	sys.exit('usage: binConverter.py "pathToFile\\fileName.bin"')
+    sys.exit('usage: binConverter.py "pathToFile\\fileName.bin"')
 
 fileIn = sys.argv[1]
 
@@ -39,9 +38,9 @@ print("reading file: " + fileIn)
 
 for byte in openFileToByte_generator(fileIn,16):
     countBytes += 1
-    stringBuffer += "0x"+binascii.hexlify(byte).decode('ascii')+", "
+    stringBuffer += "0x"+hex(byte)[2:].zfill(2)+", "
     if countBytes%16 is 0:
-    	stringBuffer += "\n\t"
+        stringBuffer += "\n\t"
 
 
 
