@@ -28,16 +28,6 @@ const byte intermezzo[INTERMEZZO_SIZE] =
 
 #define PACKET_CHUNK_SIZE 0x1000
 
-#ifdef DEBUG
-#define DEBUG_PRINT(x) Serial.print (x)
-#define DEBUG_PRINTLN(x) Serial.println (x)
-#define DEBUG_PRINTHEX(x,y) serialPrintHex (x,y)
-#else
-#define DEBUG_PRINT(x)
-#define DEBUG_PRINTLN(x)
-#define DEBUG_PRINTHEX(x,y)
-#endif
-
 USBHost usb;
 EpInfo epInfo[3];
 
@@ -49,17 +39,6 @@ bool foundTegra = false;
 byte tegraDeviceAddress = -1;
 
 unsigned long lastCheckTime = 0;
-
-const char *hexChars = "0123456789ABCDEF";
-void serialPrintHex(const byte *data, byte length)
-{
-	for (int i = 0; i < length; i++)
-	{
-		DEBUG_PRINT(hexChars[(data[i] >> 4) & 0xF]);
-		DEBUG_PRINT(hexChars[data[i] & 0xF]);
-	}
-	DEBUG_PRINTLN();
-}
 
 Adafruit_DotStar strip = Adafruit_DotStar(1, INTERNAL_DS_DATA, INTERNAL_DS_CLK, DOTSTAR_BGR);
 
@@ -91,7 +70,6 @@ void usbOutTransferChunk(uint32_t addr, uint32_t ep, uint32_t nbytes, uint8_t* d
 		else
 		{
 			strip.setPixelColor(0, 64, 0, 0); strip.show();
-			DEBUG_PRINTLN("Error in OUT transfer");
 			return;
 		}
 	}
@@ -138,9 +116,6 @@ void readTegraDeviceID(byte *deviceID)
 {
 	byte readLength = 16;
 	UHD_Pipe_Alloc(tegraDeviceAddress, 0x01, USB_HOST_PTYPE_BULK, USB_EP_DIR_IN, 0x40, 0, USB_HOST_NB_BK_1);
-
-	if (usb.inTransfer(tegraDeviceAddress, 0x01, &readLength, deviceID))
-		DEBUG_PRINTLN("Failed to get device ID!");
 }
 
 void sendPayload(const byte *payload, uint32_t payloadLength)
@@ -164,10 +139,7 @@ void findTegraDevice(UsbDeviceDefinition *pdev)
 	uint32_t address = pdev->address.devAddress;
 	USB_DEVICE_DESCRIPTOR deviceDescriptor;
 	if (usb.getDevDescr(address, 0, 0x12, (uint8_t *)&deviceDescriptor))
-	{
-		DEBUG_PRINTLN("Error getting device descriptor.");
 		return;
-	}
 
 	if (deviceDescriptor.idVendor == 0x0955 && deviceDescriptor.idProduct == 0x7321)
 	{
@@ -280,14 +252,9 @@ void setup()
 	strip.begin();
 
 	int usbInitialized = usb.Init();
-#ifdef DEBUG
-	Serial.begin(115200);
-	delay(100);
-#endif
 
 	if (usbInitialized == -1) sleep(-1);
 
-	DEBUG_PRINTLN("Ready! Waiting for Tegra...");
 	bool blink = true;
 	int currentTime = 0;
 	while (!foundTegra)
@@ -309,29 +276,21 @@ void setup()
 			sleep(-1);
 	}
 
-	DEBUG_PRINTLN("Found Tegra!");
 	setupTegraDevice();
 
 	byte deviceID[16] = {0};
 	readTegraDeviceID(deviceID);
-	DEBUG_PRINTLN("Device ID: ");
-	DEBUG_PRINTHEX(deviceID, 16);
 
-	DEBUG_PRINTLN("Sending payload...");
 	UHD_Pipe_Alloc(tegraDeviceAddress, 0x01, USB_HOST_PTYPE_BULK, USB_EP_DIR_OUT, 0x40, 0, USB_HOST_NB_BK_1);
 	packetsWritten = 0;
 	sendPayload(fuseeBin, FUSEE_BIN_SIZE);
 
 	if (packetsWritten % 2 != 1)
- 	{
-		DEBUG_PRINTLN("Switching to higher buffer...");
 		usbFlushBuffer();
-	}
 
-	DEBUG_PRINTLN("Triggering vulnerability...");
+
 	usb.ctrlReq(tegraDeviceAddress, 0, USB_SETUP_DEVICE_TO_HOST | USB_SETUP_TYPE_STANDARD | USB_SETUP_RECIPIENT_INTERFACE,
 	            0x00, 0x00, 0x00, 0x00, 0x7000, 0x7000, usbWriteBuffer, NULL);
-	DEBUG_PRINTLN("Done!");
 
 	sleep(1);
 }
