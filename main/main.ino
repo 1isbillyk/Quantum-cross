@@ -9,6 +9,9 @@
 #define ONBOARD_LED 13
 #define LED_CONFIRM_TIME_us 500000 // How long to show red or green light for success or fail
 
+#define USB_CHECK_INTERVAL_ms 100  // How often to check for connection to the Tegra device
+#define USB_CHECK_TIMEOUT_ms 1500  // How long to try connecting to the Tegra device before giving up
+
 // Contains fuseeBin and FUSEE_BIN_LENGTH
 // Include only one payload here
 // Use tools/binConverter.py to convert any payload bin you wish to load
@@ -290,7 +293,7 @@ void setup()
 		currentTime = millis();
 		usb.Task();
 
-		if (currentTime > lastCheckTime + 100)
+		if ((currentTime - lastCheckTime) > USB_CHECK_INTERVAL_ms)
 		{
 			usb.ForEachUsbDevice(&findTegraDevice);
 			if (blink && !foundTegra)
@@ -300,7 +303,7 @@ void setup()
 			blink = !blink;
 			lastCheckTime = currentTime;
 		}
-		if (currentTime > 1500)
+		if (currentTime > USB_CHECK_TIMEOUT_ms)
 			sleep(-1);
 	}
 
