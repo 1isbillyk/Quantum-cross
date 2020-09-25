@@ -1,13 +1,10 @@
 #include <Arduino.h>
 #include <Usb.h>
-#include <Adafruit_DotStar.h>
 
 #define WAKEUP_PIN 4               // Solder to side of cap on guide
                                    // -= NOTE: THIS MUST BE PIN 4!!! =-
 #define RCM_STRAP_PIN 3            // Solder to pin 10 on joycon rail
 #define RCM_STRAP_TIME_us 1000000  // Amount of time to hold RCM_STRAP low and then launch payload
-#define ONBOARD_LED 13
-#define LED_CONFIRM_TIME_us 500000 // How long to show red or green light for success or fail
 
 #define USB_CHECK_INTERVAL_ms 100  // How often to check for connection to the Tegra device
 #define USB_CHECK_TIMEOUT_ms 1500  // How long to try connecting to the Tegra device before giving up
@@ -64,8 +61,6 @@ void serialPrintHex(const byte *data, byte length)
 	DEBUG_PRINTLN();
 }
 
-Adafruit_DotStar strip = Adafruit_DotStar(1, INTERNAL_DS_DATA, INTERNAL_DS_CLK, DOTSTAR_BGR);
-
 // From what I can tell, usb.outTransfer is completely broken for transfers larger than 64 bytes (even if maxPktSize is
 // adjusted for that endpoint). This is a minimal and simplified reimplementation specific to our use cases that fixes
 // that bug and is based on the code of USBHost::outTransfer, USBHost::SetPipeAddress and USBHost::OutTransfer.
@@ -93,7 +88,6 @@ void usbOutTransferChunk(uint32_t addr, uint32_t ep, uint32_t nbytes, uint8_t* d
 		}
 		else
 		{
-			strip.setPixelColor(0, 64, 0, 0); strip.show();
 			DEBUG_PRINTLN("Error in OUT transfer");
 			return;
 		}
@@ -200,25 +194,13 @@ void setupTegraDevice()
 	UHD_Pipe_Alloc(tegraDeviceAddress, 0x01, USB_HOST_PTYPE_BULK, USB_EP_DIR_IN, 0x40, 0, USB_HOST_NB_BK_1);
 }
 
-void sleep(int errorCode)
+void sleep()
 {
 	// Turn off all LEDs and go to sleep. To launch another payload, press the reset button on the device.
 	//delay(100);
 	digitalWrite(PIN_LED_RXL, HIGH);
 	digitalWrite(PIN_LED_TXL, HIGH);
 	digitalWrite(ONBOARD_LED, LOW);
-	if (errorCode == 1)
-	{
-		setLedColor("green");
-		delayMicroseconds(LED_CONFIRM_TIME_us);
-		setLedColor("black");
-	}
-	else
-	{
-		setLedColor("red");
-		delayMicroseconds(LED_CONFIRM_TIME_us);
-		setLedColor("black");
-	}
 
 	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; // Enable deepsleep
 
@@ -233,29 +215,11 @@ void sleep(int errorCode)
 	__WFI(); // Enter sleep mode
 }
 
-void setLedColor(const char color[])
-{
-	if (color == "red")
-		strip.setPixelColor(0, 64, 0, 0);
-	else if (color == "green")
-		strip.setPixelColor(0, 0, 64, 0);
-	else if (color == "orange")
-		strip.setPixelColor(0, 64, 32, 0);
-	else if (color == "blue")
-		strip.setPixelColor(0, 0, 0, 64);
-	else if (color == "black")
-		strip.setPixelColor(0, 0, 0, 0);
-	else
-		strip.setPixelColor(0, 255, 255, 255);
-	strip.show();
-}
-
 void wakeup()
 {
 	// First, we set the RCM_STRAP low
 	pinMode(RCM_STRAP_PIN, OUTPUT);
 	digitalWrite(RCM_STRAP_PIN, LOW);
-	setLedColor("blue");
 	// Wait a second (I tried to reduce this but 1 second is good)
 	delayMicroseconds(RCM_STRAP_TIME_us);
 	SCB->AIRCR = ((0x5FA << SCB_AIRCR_VECTKEY_Pos) | SCB_AIRCR_SYSRESETREQ_Msk); //full software reset
@@ -275,10 +239,8 @@ void setup()
 	// why pin 4 must be the wakeup pin.
 	EIC->WAKEUP.vec.WAKEUPEN |= (1<<6);
 
-	strip.begin();
-
 	if (usb.Init() == -1)
-		sleep(-1);
+		sleep();
 
 #ifdef DEBUG
 	Serial.begin(115200);
@@ -286,8 +248,7 @@ void setup()
 #endif
 
 	DEBUG_PRINTLN("Ready! Waiting for Tegra...");
-	bool blink = true;
-	int currentTime = 0;
+	unsigned long currentTime = 0;
 	while (!foundTegra)
 	{
 		currentTime = millis();
@@ -296,15 +257,10 @@ void setup()
 		if ((currentTime - lastCheckTime) > USB_CHECK_INTERVAL_ms)
 		{
 			usb.ForEachUsbDevice(&findTegraDevice);
-			if (blink && !foundTegra)
-				setLedColor("orange");
-			else
-				setLedColor("black");
-			blink = !blink;
 			lastCheckTime = currentTime;
 		}
 		if (currentTime > USB_CHECK_TIMEOUT_ms)
-			sleep(-1);
+			sleep();
 	}
 
 	DEBUG_PRINTLN("Found Tegra!");
@@ -331,10 +287,10 @@ void setup()
 	            0x00, 0x00, 0x00, 0x00, 0x7000, 0x7000, usbWriteBuffer, NULL);
 	DEBUG_PRINTLN("Done!");
 
-	sleep(1);
+	sleep();
 }
 
 void loop()
 {
-	sleep(1);
+	sleep();
 }
