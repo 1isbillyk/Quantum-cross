@@ -1,11 +1,11 @@
 #include <Arduino.h>
 #include <Usb.h>
 
-#define RCM_STRAP_PIN 3            // Solder to pin 10 on joycon rail
-#define RCM_STRAP_TIME_us 1000000  // Amount of time to hold RCM_STRAP low and then launch payload
+#define RCM_STRAP_PIN 3         // Connects to Tegra HOME button
+#define RCM_STRAP_TIME 1000     // Amount of time to hold RCM_STRAP LOW to enter RCM
 
-#define USB_CHECK_INTERVAL_ms 100  // How often to check for connection to the Tegra device
-#define USB_CHECK_TIMEOUT_ms 1500  // How long to try connecting to the Tegra device before giving up
+#define USB_CHECK_INTERVAL 100  // How often to check for connection to the Tegra device
+#define USB_CHECK_TIMEOUT 1500  // How long to try connecting to the Tegra device before giving up
 
 // Contains fuseeBin and FUSEE_BIN_LENGTH
 // Include only one payload here
@@ -205,7 +205,7 @@ void setup()
 	// Trigger RCM
 	digitalWrite(RCM_STRAP_PIN, LOW);
 	pinMode(RCM_STRAP_PIN, OUTPUT);
-	delayMicroseconds(RCM_STRAP_TIME_us);
+	delay(RCM_STRAP_TIME);
 	pinMode(RCM_STRAP_PIN, INPUT);
 
 	// Initialize USB device
@@ -224,12 +224,12 @@ void setup()
 		currentTime = millis();
 		usb.Task();
 
-		if ((currentTime - lastCheckTime) > USB_CHECK_INTERVAL_ms)
+		if ((currentTime - lastCheckTime) > USB_CHECK_INTERVAL)
 		{
 			usb.ForEachUsbDevice(&findTegraDevice);
 			lastCheckTime = currentTime;
 		}
-		if (currentTime > USB_CHECK_TIMEOUT_ms)
+		if (currentTime > USB_CHECK_TIMEOUT)
 			DEBUG_PRINTLN("ERROR: Tegra device not found");
 			sleep();
 	}
