@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <Usb.h>
 
-#define WAKEUP_PIN 4               // Solder to side of cap on guide
-                                   // -= NOTE: THIS MUST BE PIN 4!!! =-
 #define RCM_STRAP_PIN 3            // Solder to pin 10 on joycon rail
 #define RCM_STRAP_TIME_us 1000000  // Amount of time to hold RCM_STRAP low and then launch payload
 
@@ -196,57 +194,28 @@ void setupTegraDevice()
 
 void sleep()
 {
-	// Turn off all LEDs and go to sleep. To launch another payload, press the reset button on the device.
-	//delay(100);
-	digitalWrite(PIN_LED_RXL, HIGH);
-	digitalWrite(PIN_LED_TXL, HIGH);
-	digitalWrite(ONBOARD_LED, LOW);
-
 	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; // Enable deepsleep
-
-	GCLK->CLKCTRL.reg = uint16_t(
-			GCLK_CLKCTRL_CLKEN |
-			GCLK_CLKCTRL_GEN_GCLK2 |
-			GCLK_CLKCTRL_ID( GCLK_CLKCTRL_ID_EIC_Val )
-	);
-	while (GCLK->STATUS.bit.SYNCBUSY) {}
-
-	__DSB(); // Ensure effect of last store takes effect
+	__DSB(); // Wait for memory write to complete
 	__WFI(); // Enter sleep mode
-}
-
-void wakeup()
-{
-	// First, we set the RCM_STRAP low
-	pinMode(RCM_STRAP_PIN, OUTPUT);
-	digitalWrite(RCM_STRAP_PIN, LOW);
-	// Wait a second (I tried to reduce this but 1 second is good)
-	delayMicroseconds(RCM_STRAP_TIME_us);
-	SCB->AIRCR = ((0x5FA << SCB_AIRCR_VECTKEY_Pos) | SCB_AIRCR_SYSRESETREQ_Msk); //full software reset
 }
 
 void setup()
 {
-	// This continues after the reset after a wakeup
-	// Set RCM_STRAP as an input to "stealth" any funny business on the RCM_STRAP
+	// Trigger RCM
+	digitalWrite(RCM_STRAP_PIN, LOW);
+	pinMode(RCM_STRAP_PIN, OUTPUT);
+	delayMicroseconds(RCM_STRAP_TIME_us);
 	pinMode(RCM_STRAP_PIN, INPUT);
-	pinMode(WAKEUP_PIN, INPUT);
 
-	// Before sleeping, make sure that we can wake up again when the switch turns on
-	// by attaching an interrupt to the wakeup pin
-	attachInterrupt(WAKEUP_PIN, wakeup, RISING);
-	// Allow pin 4 to trigger wakeups. I'm not sure how to generalize this so that's
-	// why pin 4 must be the wakeup pin.
-	EIC->WAKEUP.vec.WAKEUPEN |= (1<<6);
-
+	// Initialize USB device
 	if (usb.Init() == -1)
 		sleep();
+	#ifdef DEBUG
+		Serial.begin(115200);
+		delay(100);
+	#endif
 
-#ifdef DEBUG
-	Serial.begin(115200);
-	delay(100);
-#endif
-
+	// Locate Tegra device
 	DEBUG_PRINTLN("Ready! Waiting for Tegra...");
 	unsigned long currentTime = 0;
 	while (!foundTegra)
@@ -263,6 +232,7 @@ void setup()
 			sleep();
 	}
 
+	// Configure Tegra device
 	DEBUG_PRINTLN("Found Tegra!");
 	setupTegraDevice();
 
@@ -271,6 +241,7 @@ void setup()
 	DEBUG_PRINTLN("Device ID: ");
 	DEBUG_PRINTHEX(deviceID, 16);
 
+	// Send payload
 	DEBUG_PRINTLN("Sending payload...");
 	UHD_Pipe_Alloc(tegraDeviceAddress, 0x01, USB_HOST_PTYPE_BULK, USB_EP_DIR_OUT, 0x40, 0, USB_HOST_NB_BK_1);
 	packetsWritten = 0;
@@ -282,14 +253,17 @@ void setup()
 		usbFlushBuffer();
 	}
 
+	// Execute payload
 	DEBUG_PRINTLN("Triggering vulnerability...");
 	usb.ctrlReq(tegraDeviceAddress, 0, USB_SETUP_DEVICE_TO_HOST | USB_SETUP_TYPE_STANDARD | USB_SETUP_RECIPIENT_INTERFACE,
 	            0x00, 0x00, 0x00, 0x00, 0x7000, 0x7000, usbWriteBuffer, NULL);
-	DEBUG_PRINTLN("Done!");
 
+	// Finish and shut down
+	DEBUG_PRINTLN("Done!");
 	sleep();
 }
 
+// This should never execute
 void loop()
 {
 	sleep();
