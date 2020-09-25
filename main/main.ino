@@ -86,7 +86,7 @@ void usbOutTransferChunk(uint32_t addr, uint32_t ep, uint32_t nbytes, uint8_t* d
 		}
 		else
 		{
-			DEBUG_PRINTLN("Error in OUT transfer");
+			DEBUG_PRINTLN("ERROR: USB OUT transfer failed");
 			return;
 		}
 	}
@@ -135,7 +135,7 @@ void readTegraDeviceID(byte *deviceID)
 	UHD_Pipe_Alloc(tegraDeviceAddress, 0x01, USB_HOST_PTYPE_BULK, USB_EP_DIR_IN, 0x40, 0, USB_HOST_NB_BK_1);
 
 	if (usb.inTransfer(tegraDeviceAddress, 0x01, &readLength, deviceID))
-		DEBUG_PRINTLN("Failed to get device ID!");
+		DEBUG_PRINTLN("ERROR: Tegra device ID couldn't be read");
 }
 
 void sendPayload(const byte *payload, uint32_t payloadLength)
@@ -160,7 +160,7 @@ void findTegraDevice(UsbDeviceDefinition *pdev)
 	USB_DEVICE_DESCRIPTOR deviceDescriptor;
 	if (usb.getDevDescr(address, 0, 0x12, (uint8_t *)&deviceDescriptor))
 	{
-		DEBUG_PRINTLN("Error getting device descriptor.");
+		DEBUG_PRINTLN("ERROR: Tegra device descriptor couldn't be read");
 	}
 	else if ((deviceDescriptor.idVendor == 0x0955) && (deviceDescriptor.idProduct == 0x7321))
 	{
@@ -194,6 +194,7 @@ void setupTegraDevice()
 
 void sleep()
 {
+	DEBUG_PRINTLN("SHUTTING DOWN");
 	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; // Enable deepsleep
 	__DSB(); // Wait for memory write to complete
 	__WFI(); // Enter sleep mode
@@ -229,6 +230,7 @@ void setup()
 			lastCheckTime = currentTime;
 		}
 		if (currentTime > USB_CHECK_TIMEOUT_ms)
+			DEBUG_PRINTLN("ERROR: Tegra device not found");
 			sleep();
 	}
 
