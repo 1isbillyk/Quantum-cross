@@ -166,10 +166,8 @@ void findTegraDevice(UsbDeviceDefinition *pdev)
 	if (usb.getDevDescr(address, 0, 0x12, (uint8_t *)&deviceDescriptor))
 	{
 		DEBUG_PRINTLN("Error getting device descriptor.");
-		return;
 	}
-
-	if (deviceDescriptor.idVendor == 0x0955 && deviceDescriptor.idProduct == 0x7321)
+	else if ((deviceDescriptor.idVendor == 0x0955) && (deviceDescriptor.idProduct == 0x7321))
 	{
 		tegraDeviceAddress = address;
 		foundTegra = true;
