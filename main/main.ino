@@ -275,13 +275,13 @@ void setup()
 
 	strip.begin();
 
-	int usbInitialized = usb.Init();
+	if (usb.Init() == -1)
+		sleep(-1);
+
 #ifdef DEBUG
 	Serial.begin(115200);
 	delay(100);
 #endif
-
-	if (usbInitialized == -1) sleep(-1);
 
 	DEBUG_PRINTLN("Ready! Waiting for Tegra...");
 	bool blink = true;
