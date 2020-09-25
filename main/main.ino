@@ -49,9 +49,10 @@ byte tegraDeviceAddress = -1;
 
 unsigned long lastCheckTime = 0;
 
-const char *hexChars = "0123456789ABCDEF";
 void serialPrintHex(const byte *data, byte length)
 {
+	static const char *hexChars = "0123456789ABCDEF";
+
 	for (int i = 0; i < length; i++)
 	{
 		DEBUG_PRINT(hexChars[(data[i] >> 4) & 0xF]);
