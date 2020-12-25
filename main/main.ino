@@ -4,9 +4,7 @@
 
 #define WAKEUP_PIN 4               // Solder to side of cap on guide
                                    // -= NOTE: THIS MUST BE PIN 4!!! =-
-#define RCM_STRAP_PIN 3            // Solder to pin 10 on joycon rail
 #define RCM_STRAP_TIME_us 1000000  // Amount of time to hold RCM_STRAP low and then launch payload
-#define VOLUP_PIN 0
 #define ONBOARD_LED 13
 #define LED_CONFIRM_TIME_us 500000 // How long to show red or green light for success or fail
 
@@ -249,11 +247,6 @@ void setLedColor(const char color[]) {
 }
 
 void wakeup(){
-  // First, we set the RCM_STRAP low
-  pinMode(RCM_STRAP_PIN, OUTPUT);
-  pinMode(VOLUP_PIN, OUTPUT);
-  digitalWrite(RCM_STRAP_PIN, LOW);
-  digitalWrite(VOLUP_PIN, LOW);
   setLedColor("blue");
   // Wait a second (I tried to reduce this but 1 second is good)
   delayMicroseconds(RCM_STRAP_TIME_us);
@@ -262,12 +255,6 @@ void wakeup(){
 
 void setup()
 {
-  // This continues after the reset after a wakeup
-  // Set RCM_STRAP as an input to "stealth" any funny business on the RCM_STRAP
-  pinMode(RCM_STRAP_PIN, INPUT);
-  pinMode(VOLUP_PIN, INPUT);
-  pinMode(WAKEUP_PIN, INPUT);
-
   // Before sleeping, make sure that we can wake up again when the switch turns on
   // by attaching an interrupt to the wakeup pin
   attachInterrupt(WAKEUP_PIN, wakeup, RISING);
