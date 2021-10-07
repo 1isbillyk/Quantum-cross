@@ -6,8 +6,7 @@ Fusee Launcher for the adafruit trinket m0 board. Based on [sam fusee launcher](
 
 Build and tested with Arduino SDK.
 
-I created this fork to create an **internal** Trinket M0 mod. This chip will
-pull down the `RCM_STRAP` when the switch turns on, and then once it detects
+I created this fork to create an **internal** Trinket M0 mod. Once it detects
 RCM mode it will upload a payload and go to sleep. If it cannot find RCM mode
 it will also simply go to sleep.
 
@@ -15,8 +14,8 @@ If you expose a reset wire outside the switch or put a magnetic or physical
 button on the switch you can put the trinket into bootloader mode and flash a
 new payload without opening it again. It's pretty hacky but it kind of works.
 
-Once an open source chainloader payload is released, reflashing the trinket
-shouldn't be necessary anymore.
+Hekate supports chainloading now, so once you've flashed your trinket once, 
+you shouldn't need to reflash again.
 
 **This installation is NOT for the faint of heart. It requires soldering to one
 end of an extremely small capacitor.**
@@ -96,7 +95,6 @@ This is hacky and may not work forever, but somehow it works:
 seems to only happen once per poweroff and does not continually drain the
 switch battery. I cannot confirm because I do not want to open my switch again
 and the light is not visible from the outside.
-* Behavior with autoRCM is unsupported. Use autoRCM at your own risk.
 * The trinket is always "on" but remains in deep sleep. If you store the switch
   unplugged for a very long time there is a chance that the switch battery
 could drain to 0% (very bad for a lithium ion battery). I have good reason to
