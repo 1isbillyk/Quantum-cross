@@ -1,4 +1,4 @@
-#include <Arduino.h>
+ #include <Arduino.h>
 #include <Usb.h>
 #include <Adafruit_DotStar.h>
 
@@ -11,7 +11,7 @@
 // Contains fuseeBin and FUSEE_BIN_LENGTH
 // Include only one payload here
 // Use tools/binConverter.py to convert any payload bin you wish to load
-#include "hekate_ctcaer_5.5.1.h"
+#include "hekate_ctcaer_5.6.3.h"
 
 #define INTERMEZZO_SIZE 92
 const byte intermezzo[INTERMEZZO_SIZE] =
