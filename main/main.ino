@@ -1,9 +1,10 @@
- #include <Arduino.h>
+#include <Arduino.h>
 #include <Usb.h>
 #include <Adafruit_DotStar.h>
 
+#define PAYLOAD_SELECT 2
 #define WAKEUP_PIN 4               // Solder to side of cap on guide
-                                   // -= NOTE: THIS MUST BE PIN 4!!! =-
+// -= NOTE: THIS MUST BE PIN 4!!! =-
 #define RCM_STRAP_TIME_us 1000000  // Amount of time to hold RCM_STRAP low and then launch payload
 #define ONBOARD_LED 13
 #define LED_CONFIRM_TIME_us 500000 // How long to show red or green light for success or fail
@@ -12,7 +13,7 @@
 // Include only one payload here
 // Use tools/binConverter.py to convert any payload bin you wish to load
 #include "hekate_ctcaer_5.6.3.h"
-
+#include "Lockpick_RCM.h"
 #define INTERMEZZO_SIZE 92
 const byte intermezzo[INTERMEZZO_SIZE] =
 {
@@ -25,7 +26,7 @@ const byte intermezzo[INTERMEZZO_SIZE] =
 };
 
 #define PACKET_CHUNK_SIZE 0x1000
-
+#define DEBUG 1
 #ifdef DEBUG
 #define DEBUG_PRINT(x)  Serial.print (x)
 #define DEBUG_PRINTLN(x)  Serial.println (x)
@@ -207,7 +208,7 @@ void sleep(int errorCode) {
   digitalWrite(PIN_LED_TXL, HIGH);
   digitalWrite(ONBOARD_LED, LOW);
   if (errorCode == 1) {
-    setLedColor("green"); //led to red
+    setLedColor("green"); //led to green
     delayMicroseconds(LED_CONFIRM_TIME_us);
     setLedColor("black"); //led to off
   } else {
@@ -215,16 +216,16 @@ void sleep(int errorCode) {
     delayMicroseconds(LED_CONFIRM_TIME_us);
     setLedColor("black"); //led to off
   }
-  
+
   SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; /* Enable deepsleep */
 
   GCLK->CLKCTRL.reg = uint16_t(
-      GCLK_CLKCTRL_CLKEN |
-      GCLK_CLKCTRL_GEN_GCLK2 |
-      GCLK_CLKCTRL_ID( GCLK_CLKCTRL_ID_EIC_Val )
-  );
+                        GCLK_CLKCTRL_CLKEN |
+                        GCLK_CLKCTRL_GEN_GCLK2 |
+                        GCLK_CLKCTRL_ID( GCLK_CLKCTRL_ID_EIC_Val )
+                      );
   while (GCLK->STATUS.bit.SYNCBUSY) {}
-  
+
   __DSB(); /* Ensure effect of last store takes effect */
   __WFI(); /* Enter sleep mode */
 }
@@ -238,6 +239,8 @@ void setLedColor(const char color[]) {
     strip.setPixelColor(0, 64, 32, 0);
   } else if (color == "blue") {
     strip.setPixelColor(0, 0, 0, 64);
+  } else if (color == "magenta") {
+    strip.setPixelColor(0, 255, 0, 255);
   } else if (color == "black") {
     strip.setPixelColor(0, 0, 0, 0);
   } else {
@@ -246,7 +249,7 @@ void setLedColor(const char color[]) {
   strip.show();
 }
 
-void wakeup(){
+void wakeup() {
   setLedColor("blue");
   // Wait a second (I tried to reduce this but 1 second is good)
   delayMicroseconds(RCM_STRAP_TIME_us);
@@ -260,8 +263,10 @@ void setup()
   attachInterrupt(WAKEUP_PIN, wakeup, RISING);
   // Allow pin 4 to trigger wakeups. I'm not sure how to generalize this so that's
   // why pin 4 must be the wakeup pin.
-  EIC->WAKEUP.vec.WAKEUPEN |= (1<<6);
+  EIC->WAKEUP.vec.WAKEUPEN |= (1 << 6);
 
+  pinMode(PAYLOAD_SELECT,INPUT_PULLUP); // Set payload selector to input pin, type pullup
+  
   strip.begin();
 
   int usbInitialized = usb.Init();
@@ -273,6 +278,7 @@ void setup()
   if (usbInitialized == -1) sleep(-1);
 
   DEBUG_PRINTLN("Ready! Waiting for Tegra...");
+  
   bool blink = true;
   int currentTime = 0;
   while (!foundTegra)
@@ -283,7 +289,7 @@ void setup()
     if (currentTime > lastCheckTime + 100) {
       usb.ForEachUsbDevice(&findTegraDevice);
       if (blink && !foundTegra) {
-        setLedColor("orange"); //led to orange
+          setLedColor("orange"); //led to orange
       } else {
         setLedColor("black"); //led to black
       }
@@ -307,8 +313,15 @@ void setup()
   DEBUG_PRINTLN("Sending payload...");
   UHD_Pipe_Alloc(tegraDeviceAddress, 0x01, USB_HOST_PTYPE_BULK, USB_EP_DIR_OUT, 0x40, 0, USB_HOST_NB_BK_1);
   packetsWritten = 0;
-  sendPayload(fuseeBin, FUSEE_BIN_SIZE);
 
+  if (digitalRead(PAYLOAD_SELECT) == HIGH){ // if payload select is floating, launch payload 1
+    sendPayload(fuseeBin, FUSEE_BIN_SIZE);
+  }
+  else { // if payload select is bridged to ground, set LED to magenta and launch payload 2
+    setLedColor("magenta");
+    sendPayload(payload2, PAYLOAD2_SIZE);
+  }
+  
   if (packetsWritten % 2 != 1)
   {
     DEBUG_PRINTLN("Switching to higher buffer...");
