@@ -10,6 +10,16 @@ I created this fork to create an **internal** Trinket M0 mod. Once it detects
 RCM mode it will upload a payload and go to sleep. If it cannot find RCM mode
 it will also simply go to sleep.
 
+---
+This fork will take two payloads, hekate and lockpick rcm by default 
+(however these two can be anything that fits within the size constraints of the Trinket M0's onboard flash.),
+you can select lockpick rcm by bridging pin 2 to ground before resetting/booting, 
+this will set the LED to magenta when it finds the tegra and then green for successful injection.
+
+To add a second payload, convert the payload bin using the python script, and then open it up with a text editor,
+change ```FUSEE_BIN_SIZE``` to ```PAYLOAD2_SIZE``` and change ```fuseeBin``` to ```payload2```
+
+---
 If you expose a reset wire outside the switch or put a magnetic or physical
 button on the switch you can put the trinket into bootloader mode and flash a
 new payload without opening it again. It's pretty hacky but it kind of works.
@@ -47,7 +57,7 @@ should see a USB mass storage device called `TRINKETBOOT`
 
 Your computer should detect the Trinket m0 automatically (On win7 install this [driver](https://github.com/adafruit/Adafruit_Windows_Drivers/releases/download/2.2.0/adafruit_drivers_2.2.0.0.exe))
 
-Got to Tools > Port and select your conneted trinket m0
+Got to Tools > Port and select your connected trinket m0
 
 Download this Repository, open main/main.ino with Arduino IDE.
 
@@ -61,6 +71,7 @@ LED is:
 * blue -> Holding `RCM_STRAP` low
 * blinking orange -> searching for Switch in RCM mode
 * red -> no Switch found
+* magenta -> Injecting secondary payload
 * green -> payload successfully injected, about to sleep
 * off -> sleeping
 
