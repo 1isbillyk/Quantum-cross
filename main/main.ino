@@ -2,10 +2,17 @@
 #include <Usb.h>
 #include <Adafruit_DotStar.h>
 
-#define PAYLOAD_SELECT 2
+#define PAYLOAD_SELECT 2           // Add a button between this pin and ground
+
 #define WAKEUP_PIN 4               // Solder to side of cap on guide
-// -= NOTE: THIS MUST BE PIN 4!!! =-
+                                   // -= NOTE: THIS MUST BE PIN 4!!! =-
+
+#define RCM_ENABLE 1
+
+#define VOLUP_PIN 0
+#define RCM_STRAP_PIN 3            // Solder to pin 10 on joycon rail
 #define RCM_STRAP_TIME_us 1000000  // Amount of time to hold RCM_STRAP low and then launch payload
+
 #define ONBOARD_LED 13
 #define LED_CONFIRM_TIME_us 500000 // How long to show red or green light for success or fail
 
@@ -26,7 +33,8 @@ const byte intermezzo[INTERMEZZO_SIZE] =
 };
 
 #define PACKET_CHUNK_SIZE 0x1000
-#define DEBUG 1
+
+#define DEBUG 
 #ifdef DEBUG
 #define DEBUG_PRINT(x)  Serial.print (x)
 #define DEBUG_PRINTLN(x)  Serial.println (x)
@@ -240,7 +248,11 @@ void setLedColor(const char color[]) {
   } else if (color == "blue") {
     strip.setPixelColor(0, 0, 0, 64);
   } else if (color == "magenta") {
-    strip.setPixelColor(0, 255, 0, 255);
+    strip.setPixelColor(0, 64, 0, 64);
+  } else if (color == "yellow") {
+    strip.setPixelColor(0,64,64,0);
+  } else if (color == "white") {
+    strip.setPixelColor(0,16,16,16);
   } else if (color == "black") {
     strip.setPixelColor(0, 0, 0, 0);
   } else {
@@ -250,7 +262,17 @@ void setLedColor(const char color[]) {
 }
 
 void wakeup() {
+  if (RCM_ENABLE != 0){
+   // First, we set the RCM_STRAP low
+  pinMode(RCM_STRAP_PIN, OUTPUT);
+  pinMode(VOLUP_PIN, OUTPUT);
+  digitalWrite(RCM_STRAP_PIN, LOW);
+  digitalWrite(VOLUP_PIN, LOW);
   setLedColor("blue");
+  }
+  else {
+    setLedColor("white");
+  }
   // Wait a second (I tried to reduce this but 1 second is good)
   delayMicroseconds(RCM_STRAP_TIME_us);
   SCB->AIRCR = ((0x5FA << SCB_AIRCR_VECTKEY_Pos) | SCB_AIRCR_SYSRESETREQ_Msk); //full software reset

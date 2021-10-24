@@ -36,6 +36,10 @@ end of an extremely small capacitor.**
 You are responsible for your own actions. Only perform this if you have the
 skills and equipment to do so.**
 
+# Changes of this Fork:
+
+Set RCM_ENABLE to 0 if you use autorcm, and it will not attempt putting your switch into rcm.
+
 # Software Installation
 
 Go through [trinket m0: arduino-ide-setup](https://learn.adafruit.com/adafruit-trinket-m0-circuitpython-arduino/arduino-ide-setup) and [trinket m0: arduino-ide-setup2](https://learn.adafruit.com/adafruit-trinket-m0-circuitpython-arduino/using-with-arduino-ide) and read very carefully.
@@ -128,4 +132,3 @@ off of
 * [xboxexport](https://www.youtube.com/user/xboxexpert) for testing the mod,
   helping with the install instructions, pictures, and the idea for grabbing
 RCM_STRAP at the rail.
-
