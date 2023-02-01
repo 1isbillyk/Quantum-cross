@@ -19,7 +19,7 @@ Selecting payload 2 is done by bridging Pin 2 to ground before the board resets/
 If payload 2 is selected, the LED will briefly flash Magenta before sending the payload.
 
 To add a second payload, use binConverter.py with the argument payload2, 
-Ex: ```./binConverter.py Lockpick_RCM.bin payload2```
+Ex: `./binConverter.py Lockpick_RCM.bin payload2`
 If payloadX is not specified, the script will default to "payload1"
 
 This fork adds the variable ```RCM_ENABLE```, allows toggling off the RCM triggering, for use with AutoRCM.
@@ -81,6 +81,7 @@ The trinket is ready for installation.
 
 LED is:
 * blue -> Holding `RCM_STRAP` low
+* white -> Waiting for AutoRCM
 * blinking orange -> searching for Switch in RCM mode
 * red -> no Switch found
 * magenta -> Injecting secondary payload
@@ -92,8 +93,8 @@ Download your favorite [payload](https://github.com/CTCaer/hekate/releases) as a
 Run the python script `tools/binConverter.py` with the path to the file as an argument:
 `python binConverter.py "C:\pathToMyPayload\hekateNew.bin` or just drag the .bin file on the script
 
-In the same folder as the .bin file is located, a new .h file should appear. Copy the new file to the main folder and in the main.ino go to line 6 `#include "hekate_ctcaer_2.3.h"` and rename it to your new file `#include "hekateNew.h"`
-
+In the same folder as the .bin file is located, a new .h file should appear. 
+Copy the new file to the main folder.
 Then just compile and upload.
 
 # Installation into the Nintendo Switch
