@@ -25,11 +25,14 @@ def openFileToByte_generator(filename , chunkSize = 128):
                 break
 
 
-if(len(sys.argv) != 3):
+if len(sys.argv) < 2 or len(sys.argv) > 3:
 	sys.exit('usage: binConverter.py "pathToFile\\fileName.bin payloadX"')
 
 fileIn = sys.argv[1]
-payloadNum = str(sys.argv[2]).lower()
+if len(sys.argv) < 3:
+    payloadNum = "payload1"
+else:
+    payloadNum = str(sys.argv[2]).lower()
 
 
 base = os.path.splitext(fileIn)[0]
