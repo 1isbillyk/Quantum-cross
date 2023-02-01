@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 import binascii
 import os
@@ -28,7 +29,7 @@ if(len(sys.argv) != 3):
 	sys.exit('usage: binConverter.py "pathToFile\\fileName.bin payloadX"')
 
 fileIn = sys.argv[1]
-payloadNum = sys.argv[2].lower
+payloadNum = str(sys.argv[2]).lower()
 
 
 base = os.path.splitext(fileIn)[0]
@@ -46,7 +47,12 @@ for byte in openFileToByte_generator(fileIn,16):
 
 
 
-stringBuffer = f"#include <Arduino.h> \n//{fileIn} \n#define {payloadNum.upper}_SIZE {countBytes}\nconst PROGMEM byte {payloadNum}Bin[{payloadNum.upper}_SIZE] = \n{{stringBuffer}\n};"
+stringBuffer = f"#include <Arduino.h>\n" \
+               f"//{fileIn}\n" \
+               f"#define {payloadNum.upper()}_SIZE {countBytes}\n" \
+               f"const PROGMEM byte {payloadNum}Bin[{payloadNum.upper()}_SIZE] =" + " {\n" \
+               f"{stringBuffer}\n" \
+               "};"
 
 print("\nwriting file: " + fileOut)
 text_file = open(fileOut, "w")
