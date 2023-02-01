@@ -24,14 +24,15 @@ def openFileToByte_generator(filename , chunkSize = 128):
                 break
 
 
-if(len(sys.argv) != 2):
-	sys.exit('usage: binConverter.py "pathToFile\\fileName.bin"')
+if(len(sys.argv) != 3):
+	sys.exit('usage: binConverter.py "pathToFile\\fileName.bin payloadX"')
 
 fileIn = sys.argv[1]
+payloadNum = sys.argv[2].lower
 
 
 base = os.path.splitext(fileIn)[0]
-fileOut =  base + ".h"
+fileOut =  payloadNum + ".h"
 
 stringBuffer = "\t"
 countBytes = 0
@@ -45,7 +46,7 @@ for byte in openFileToByte_generator(fileIn,16):
 
 
 
-stringBuffer = "#include <Arduino.h> \n \n#define FUSEE_BIN_SIZE " + str(countBytes) + "\nconst PROGMEM byte fuseeBin[FUSEE_BIN_SIZE] = {\n" + stringBuffer + "\n};"
+stringBuffer = f"#include <Arduino.h> \n//{fileIn} \n#define {payloadNum.upper}_SIZE {countBytes}\nconst PROGMEM byte {payloadNum}Bin[{payloadNum.upper}_SIZE] = \n{{stringBuffer}\n};"
 
 print("\nwriting file: " + fileOut)
 text_file = open(fileOut, "w")
