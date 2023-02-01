@@ -14,8 +14,8 @@ Changes in this Fork
 ---
 This fork will take two payloads, Hekate and Lockpick_RCM by default 
 (however these two can be anything that fits within the size constraints of the Trinket M0's onboard flash.),
-you can select Lockpick_RCM by bridging pin 2 to ground before resetting/booting, 
-this will set the LED to magenta when it finds the tegra and then green for successful injection.
+you can select Lockpick_RCM by bridging pin 2 to ground before resetting/booting (this can be done with a button etc), 
+this will set the LED to magenta when it finds the SoC and then green for successful injection.
 
 To add a second payload, convert the payload bin using the python script, and then open it up with a text editor,
 change ```FUSEE_BIN_SIZE``` to ```PAYLOAD2_SIZE``` and change ```fuseeBin``` to ```payload2```
