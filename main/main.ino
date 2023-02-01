@@ -19,8 +19,8 @@
 // Contains fuseeBin and FUSEE_BIN_LENGTH
 // Include only one payload here
 // Use tools/binConverter.py to convert any payload bin you wish to load
-#include "hekate_ctcaer_5.6.3.h"
-#include "Lockpick_RCM.h"
+#include "payload1.h"
+#include "payload2.h"
 #define INTERMEZZO_SIZE 92
 const byte intermezzo[INTERMEZZO_SIZE] =
 {
