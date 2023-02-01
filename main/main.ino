@@ -6,21 +6,22 @@
 
 #define WAKEUP_PIN 4               // Solder to side of cap on guide
                                    // -= NOTE: THIS MUST BE PIN 4!!! =-
-
-#define RCM_ENABLE 1
-
-#define VOLUP_PIN 0
+                    
+// RCM 
+#define RCM_ENABLE 1               // Define whether we should trigger RCM, or skip due to AutoRCM
+#define VOLUP_PIN 0                
 #define RCM_STRAP_PIN 3            // Solder to pin 10 on joycon rail
 #define RCM_STRAP_TIME_us 1000000  // Amount of time to hold RCM_STRAP low and then launch payload
 
 #define ONBOARD_LED 13
 #define LED_CONFIRM_TIME_us 500000 // How long to show red or green light for success or fail
 
-// Contains fuseeBin and FUSEE_BIN_LENGTH
-// Include only one payload here
+// Our two payloads, contains both the bin and it's size
 // Use tools/binConverter.py to convert any payload bin you wish to load
-#include "hekate_ctcaer_5.6.3.h"
-#include "Lockpick_RCM.h"
+#include "payload1.h"
+#include "payload2.h"
+
+
 #define INTERMEZZO_SIZE 92
 const byte intermezzo[INTERMEZZO_SIZE] =
 {
@@ -263,12 +264,13 @@ void setLedColor(const char color[]) {
 
 void wakeup() {
   if (RCM_ENABLE != 0){
-   // First, we set the RCM_STRAP low
-  pinMode(RCM_STRAP_PIN, OUTPUT);
-  pinMode(VOLUP_PIN, OUTPUT);
-  digitalWrite(RCM_STRAP_PIN, LOW);
-  digitalWrite(VOLUP_PIN, LOW);
-  setLedColor("blue");
+    setLedColor("blue");
+    // Trigger RCM
+    pinMode(RCM_STRAP_PIN, OUTPUT);
+    pinMode(VOLUP_PIN, OUTPUT);
+    digitalWrite(RCM_STRAP_PIN, LOW);
+    digitalWrite(VOLUP_PIN, LOW);
+  
   }
   else {
     setLedColor("white");
@@ -337,11 +339,13 @@ void setup()
   packetsWritten = 0;
 
   if (digitalRead(PAYLOAD_SELECT) == HIGH){ // if payload select is floating, launch payload 1
-    sendPayload(fuseeBin, FUSEE_BIN_SIZE);
+    DEBUG_PRINTLN("Injecting payload 1...");
+    sendPayload(payload1Bin, PAYLOAD1_SIZE);
   }
   else { // if payload select is bridged to ground, set LED to magenta and launch payload 2
+    DEBUG_PRINTLN("Injecting payload 2...");
     setLedColor("magenta");
-    sendPayload(payload2, PAYLOAD2_SIZE);
+    sendPayload(payload2Bin, PAYLOAD2_SIZE);
   }
   
   if (packetsWritten % 2 != 1)
