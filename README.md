@@ -12,19 +12,21 @@ it will also simply go to sleep.
 
 Changes in this Fork
 ---
-This fork will take two payloads, Hekate and Lockpick_RCM by default 
-(however these two can be anything that fits within the size constraints of the Trinket M0's onboard flash.),
-you can select Lockpick_RCM by bridging pin 2 to ground before resetting/booting (this can be done with a button etc), 
-this will set the LED to magenta when it finds the SoC and then green for successful injection.
+This fork supports loading two payloads, 
+These are Hekate(default,p1) and Lockpick_RCM(p2) by default, however you can put any pair that'll fit within the M0's flash.
 
-To add a second payload, convert the payload bin using the python script, and then open it up with a text editor,
-change ```FUSEE_BIN_SIZE``` to ```PAYLOAD2_SIZE``` and change ```fuseeBin``` to ```payload2```
+Selecting payload 2 is done by bridging Pin 2 to ground before the board resets/boots with a button etc,
+If payload 2 is selected, the LED will briefly flash Magenta before sending the payload.
 
-I've also added the variable ```RCM_ENABLE```, which restores the functionality of automatically putting your switch in RCM,
+To add a second payload, use binConverter.py with the argument payload2, 
+Ex: ```./binConverter.py Lockpick_RCM.bin payload2```
+If payloadX is not specified, the script will default to "payload1"
 
-I've left it enabled by default, however it is not needed and
-can be turned off to save soldering to the rcm strap, as AutoRCM is safe and reversible. 
-**Make sure you for sure have a boot0 and boot1 backup though.**
+This fork adds the variable ```RCM_ENABLE```, allows toggling off the RCM triggering, for use with AutoRCM.
+It's enabled by default, however it is not needed and can be turned off, as AutoRCM is safe and reversible.
+**Make sure you DEFINITELY have a boot0 and boot1 backup if you're using AutoRCM however.**
+
+The LED will flash Blue if it is triggering RCM, or White if RCM triggering is disabled.
 
 ---
 

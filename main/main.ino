@@ -264,12 +264,13 @@ void setLedColor(const char color[]) {
 
 void wakeup() {
   if (RCM_ENABLE != 0){
-   // First, we set the RCM_STRAP low
-  pinMode(RCM_STRAP_PIN, OUTPUT);
-  pinMode(VOLUP_PIN, OUTPUT);
-  digitalWrite(RCM_STRAP_PIN, LOW);
-  digitalWrite(VOLUP_PIN, LOW);
-  setLedColor("blue");
+    setLedColor("blue");
+    // Trigger RCM
+    pinMode(RCM_STRAP_PIN, OUTPUT);
+    pinMode(VOLUP_PIN, OUTPUT);
+    digitalWrite(RCM_STRAP_PIN, LOW);
+    digitalWrite(VOLUP_PIN, LOW);
+  
   }
   else {
     setLedColor("white");
