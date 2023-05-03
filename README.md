@@ -1,8 +1,8 @@
 
 
-# sam-fusee-launcher-internal
+# NX-Trinket-Launcher
 
-Fusee Launcher for the adafruit trinket m0 board. Based on [sam fusee launcher](https://github.com/atlas44/sam-fusee-launcher) by atlas44 and the [fork by noemu](https://github.com/noemu/sam-fusee-launcher).
+Payload Launcher for the adafruit trinket m0 board. Based on [sam fusee launcher](https://github.com/atlas44/sam-fusee-launcher) by atlas44 and the [fork by Quantum-cross](https://github.com/Quantum-cross/sam-fusee-launcher).
 
 Build and tested with Arduino SDK.
 
