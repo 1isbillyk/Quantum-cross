@@ -1,22 +1,42 @@
 
 
-# sam-fusee-launcher-internal
+# NX-Trinket-Launcher
 
-Fusee Launcher for the adafruit trinket m0 board. Based on [sam fusee launcher](https://github.com/atlas44/sam-fusee-launcher) by atlas44 and the [fork by noemu](https://github.com/noemu/sam-fusee-launcher).
+Payload Launcher for the adafruit trinket m0 board. Based on [sam fusee launcher](https://github.com/atlas44/sam-fusee-launcher) by atlas44 and the [fork by Quantum-cross](https://github.com/Quantum-cross/sam-fusee-launcher).
 
 Build and tested with Arduino SDK.
 
-I created this fork to create an **internal** Trinket M0 mod. This chip will
-pull down the `RCM_STRAP` when the switch turns on, and then once it detects
+I created this fork to create an **internal** Trinket M0 mod. Once it detects
 RCM mode it will upload a payload and go to sleep. If it cannot find RCM mode
 it will also simply go to sleep.
+
+Changes in this Fork
+---
+This fork supports loading two payloads, 
+These are Hekate(default,p1) and Lockpick_RCM(p2) by default, however you can put any pair that'll fit within the M0's flash.
+
+Selecting payload 2 is done by bridging Pin 2 to ground before the board resets/boots with a button etc,
+If payload 2 is selected, the LED will briefly flash Magenta before sending the payload.
+
+To add a second payload, use binConverter.py with the argument payload2, 
+Ex: `./binConverter.py Lockpick_RCM.bin payload2`
+If payloadX is not specified, the script will default to "payload1"
+
+This fork adds the variable ```RCM_ENABLE```, allows toggling off the RCM triggering, for use with AutoRCM.
+It's enabled by default, however it is not needed and can be turned off, as AutoRCM is safe and reversible.
+**Make sure you DEFINITELY have a boot0 and boot1 backup if you're using AutoRCM however.**
+
+The LED will flash Blue if it is triggering RCM, or White if RCM triggering is disabled.
+
+---
+
 
 If you expose a reset wire outside the switch or put a magnetic or physical
 button on the switch you can put the trinket into bootloader mode and flash a
 new payload without opening it again. It's pretty hacky but it kind of works.
 
-Once an open source chainloader payload is released, reflashing the trinket
-shouldn't be necessary anymore.
+Hekate supports chainloading now, so once you've flashed your trinket once, 
+you shouldn't need to reflash again.
 
 **This installation is NOT for the faint of heart. It requires soldering to one
 end of an extremely small capacitor.**
@@ -26,6 +46,7 @@ end of an extremely small capacitor.**
 **This code and these instructions are distributed with no warranty or support.
 You are responsible for your own actions. Only perform this if you have the
 skills and equipment to do so.**
+
 
 # Software Installation
 
@@ -48,7 +69,7 @@ should see a USB mass storage device called `TRINKETBOOT`
 
 Your computer should detect the Trinket m0 automatically (On win7 install this [driver](https://github.com/adafruit/Adafruit_Windows_Drivers/releases/download/2.2.0/adafruit_drivers_2.2.0.0.exe))
 
-Got to Tools > Port and select your conneted trinket m0
+Got to Tools > Port and select your connected trinket m0
 
 Download this Repository, open main/main.ino with Arduino IDE.
 
@@ -60,8 +81,10 @@ The trinket is ready for installation.
 
 LED is:
 * blue -> Holding `RCM_STRAP` low
+* white -> Waiting for AutoRCM
 * blinking orange -> searching for Switch in RCM mode
 * red -> no Switch found
+* magenta -> Injecting secondary payload
 * green -> payload successfully injected, about to sleep
 * off -> sleeping
 
@@ -70,8 +93,8 @@ Download your favorite [payload](https://github.com/CTCaer/hekate/releases) as a
 Run the python script `tools/binConverter.py` with the path to the file as an argument:
 `python binConverter.py "C:\pathToMyPayload\hekateNew.bin` or just drag the .bin file on the script
 
-In the same folder as the .bin file is located, a new .h file should appear. Copy the new file to the main folder and in the main.ino go to line 6 `#include "hekate_ctcaer_2.3.h"` and rename it to your new file `#include "hekateNew.h"`
-
+In the same folder as the .bin file is located, a new .h file should appear. 
+Copy the new file to the main folder.
 Then just compile and upload.
 
 # Installation into the Nintendo Switch
@@ -96,7 +119,6 @@ This is hacky and may not work forever, but somehow it works:
 seems to only happen once per poweroff and does not continually drain the
 switch battery. I cannot confirm because I do not want to open my switch again
 and the light is not visible from the outside.
-* Behavior with autoRCM is unsupported. Use autoRCM at your own risk.
 * The trinket is always "on" but remains in deep sleep. If you store the switch
   unplugged for a very long time there is a chance that the switch battery
 could drain to 0% (very bad for a lithium ion battery). I have good reason to
@@ -119,4 +141,3 @@ off of
 * [xboxexport](https://www.youtube.com/user/xboxexpert) for testing the mod,
   helping with the install instructions, pictures, and the idea for grabbing
 RCM_STRAP at the rail.
-

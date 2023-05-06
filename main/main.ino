@@ -2,18 +2,25 @@
 #include <Usb.h>
 #include <Adafruit_DotStar.h>
 
+#define PAYLOAD_SELECT 2           // Add a button between this pin and ground
+
 #define WAKEUP_PIN 4               // Solder to side of cap on guide
                                    // -= NOTE: THIS MUST BE PIN 4!!! =-
+                    
+// RCM 
+#define RCM_ENABLE 1               // Define whether we should trigger RCM, or skip due to AutoRCM
+#define VOLUP_PIN 0                
 #define RCM_STRAP_PIN 3            // Solder to pin 10 on joycon rail
 #define RCM_STRAP_TIME_us 1000000  // Amount of time to hold RCM_STRAP low and then launch payload
-#define VOLUP_PIN 0
+
 #define ONBOARD_LED 13
 #define LED_CONFIRM_TIME_us 500000 // How long to show red or green light for success or fail
 
-// Contains fuseeBin and FUSEE_BIN_LENGTH
-// Include only one payload here
+// Our two payloads, contains both the bin and it's size
 // Use tools/binConverter.py to convert any payload bin you wish to load
-#include "hekate_ctcaer_3.0.h"
+#include "payload1.h"
+#include "payload2.h"
+
 
 #define INTERMEZZO_SIZE 92
 const byte intermezzo[INTERMEZZO_SIZE] =
@@ -28,6 +35,7 @@ const byte intermezzo[INTERMEZZO_SIZE] =
 
 #define PACKET_CHUNK_SIZE 0x1000
 
+#define DEBUG 
 #ifdef DEBUG
 #define DEBUG_PRINT(x)  Serial.print (x)
 #define DEBUG_PRINTLN(x)  Serial.println (x)
@@ -209,7 +217,7 @@ void sleep(int errorCode) {
   digitalWrite(PIN_LED_TXL, HIGH);
   digitalWrite(ONBOARD_LED, LOW);
   if (errorCode == 1) {
-    setLedColor("green"); //led to red
+    setLedColor("green"); //led to green
     delayMicroseconds(LED_CONFIRM_TIME_us);
     setLedColor("black"); //led to off
   } else {
@@ -217,16 +225,16 @@ void sleep(int errorCode) {
     delayMicroseconds(LED_CONFIRM_TIME_us);
     setLedColor("black"); //led to off
   }
-  
+
   SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; /* Enable deepsleep */
 
   GCLK->CLKCTRL.reg = uint16_t(
-      GCLK_CLKCTRL_CLKEN |
-      GCLK_CLKCTRL_GEN_GCLK2 |
-      GCLK_CLKCTRL_ID( GCLK_CLKCTRL_ID_EIC_Val )
-  );
+                        GCLK_CLKCTRL_CLKEN |
+                        GCLK_CLKCTRL_GEN_GCLK2 |
+                        GCLK_CLKCTRL_ID( GCLK_CLKCTRL_ID_EIC_Val )
+                      );
   while (GCLK->STATUS.bit.SYNCBUSY) {}
-  
+
   __DSB(); /* Ensure effect of last store takes effect */
   __WFI(); /* Enter sleep mode */
 }
@@ -240,6 +248,12 @@ void setLedColor(const char color[]) {
     strip.setPixelColor(0, 64, 32, 0);
   } else if (color == "blue") {
     strip.setPixelColor(0, 0, 0, 64);
+  } else if (color == "magenta") {
+    strip.setPixelColor(0, 64, 0, 64);
+  } else if (color == "yellow") {
+    strip.setPixelColor(0,64,64,0);
+  } else if (color == "white") {
+    strip.setPixelColor(0,16,16,16);
   } else if (color == "black") {
     strip.setPixelColor(0, 0, 0, 0);
   } else {
@@ -248,13 +262,19 @@ void setLedColor(const char color[]) {
   strip.show();
 }
 
-void wakeup(){
-  // First, we set the RCM_STRAP low
-  pinMode(RCM_STRAP_PIN, OUTPUT);
-  pinMode(VOLUP_PIN, OUTPUT);
-  digitalWrite(RCM_STRAP_PIN, LOW);
-  digitalWrite(VOLUP_PIN, LOW);
-  setLedColor("blue");
+void wakeup() {
+  if (RCM_ENABLE != 0){
+    setLedColor("blue");
+    // Trigger RCM
+    pinMode(RCM_STRAP_PIN, OUTPUT);
+    pinMode(VOLUP_PIN, OUTPUT);
+    digitalWrite(RCM_STRAP_PIN, LOW);
+    digitalWrite(VOLUP_PIN, LOW);
+  
+  }
+  else {
+    setLedColor("white");
+  }
   // Wait a second (I tried to reduce this but 1 second is good)
   delayMicroseconds(RCM_STRAP_TIME_us);
   SCB->AIRCR = ((0x5FA << SCB_AIRCR_VECTKEY_Pos) | SCB_AIRCR_SYSRESETREQ_Msk); //full software reset
@@ -262,19 +282,15 @@ void wakeup(){
 
 void setup()
 {
-  // This continues after the reset after a wakeup
-  // Set RCM_STRAP as an input to "stealth" any funny business on the RCM_STRAP
-  pinMode(RCM_STRAP_PIN, INPUT);
-  pinMode(VOLUP_PIN, INPUT);
-  pinMode(WAKEUP_PIN, INPUT);
-
   // Before sleeping, make sure that we can wake up again when the switch turns on
   // by attaching an interrupt to the wakeup pin
   attachInterrupt(WAKEUP_PIN, wakeup, RISING);
   // Allow pin 4 to trigger wakeups. I'm not sure how to generalize this so that's
   // why pin 4 must be the wakeup pin.
-  EIC->WAKEUP.vec.WAKEUPEN |= (1<<6);
+  EIC->WAKEUP.vec.WAKEUPEN |= (1 << 6);
 
+  pinMode(PAYLOAD_SELECT,INPUT_PULLUP); // Set payload selector to input pin, type pullup
+  
   strip.begin();
 
   int usbInitialized = usb.Init();
@@ -286,6 +302,7 @@ void setup()
   if (usbInitialized == -1) sleep(-1);
 
   DEBUG_PRINTLN("Ready! Waiting for Tegra...");
+  
   bool blink = true;
   int currentTime = 0;
   while (!foundTegra)
@@ -296,7 +313,7 @@ void setup()
     if (currentTime > lastCheckTime + 100) {
       usb.ForEachUsbDevice(&findTegraDevice);
       if (blink && !foundTegra) {
-        setLedColor("orange"); //led to orange
+          setLedColor("orange"); //led to orange
       } else {
         setLedColor("black"); //led to black
       }
@@ -320,8 +337,17 @@ void setup()
   DEBUG_PRINTLN("Sending payload...");
   UHD_Pipe_Alloc(tegraDeviceAddress, 0x01, USB_HOST_PTYPE_BULK, USB_EP_DIR_OUT, 0x40, 0, USB_HOST_NB_BK_1);
   packetsWritten = 0;
-  sendPayload(fuseeBin, FUSEE_BIN_SIZE);
 
+  if (digitalRead(PAYLOAD_SELECT) == HIGH){ // if payload select is floating, launch payload 1
+    DEBUG_PRINTLN("Injecting payload 1...");
+    sendPayload(payload1Bin, PAYLOAD1_SIZE);
+  }
+  else { // if payload select is bridged to ground, set LED to magenta and launch payload 2
+    DEBUG_PRINTLN("Injecting payload 2...");
+    setLedColor("magenta");
+    sendPayload(payload2Bin, PAYLOAD2_SIZE);
+  }
+  
   if (packetsWritten % 2 != 1)
   {
     DEBUG_PRINTLN("Switching to higher buffer...");
